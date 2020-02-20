@@ -3,9 +3,42 @@ var socket = io.connect();
 
 // Lorsqu'on clique sur le bouton, on envoie un "message" au serveur
 /*  function play()*/
-$('#play').click(function () {
 
-  var sheet = "";
+var status;
+$('#play').click(function () {
+  status = whatPlay();
+  socket.emit('message', result);
+})
+
+$('#stop').click(function () {
+  socket.emit('message', 'STOP');
+  status = 'STOP';
+})
+
+$('#clear').click(function () {
+  $("input:radio").removeAttr("checked");
+  socket.emit('message', 'clear');
+})
+
+socket.on('redirectWAIT_OK', function (destination) {
+  window.location.href = destination;
+});
+
+socket.on('finished', function (message) {
+ // alert("Jai fini de jouer"+message);
+ // alert("CURRENT STATUS ="+status);
+  var sendResult;
+  if(status.includes("PLAY")){
+    sendResult =whatPlay();
+  }
+  if(status.includes("STOP")){
+    sendResult =status;
+  }
+  socket.emit('message', sendResult);
+});
+
+function whatPlay() {
+ var sheet = "";
   var items = document.getElementsByName("t1");
   var selectedItems1 = "";
 
@@ -104,20 +137,6 @@ $('#play').click(function () {
   sheet += selectedItems8;
 
   speed_val = document.getElementById("speed").value;
-
-  //socket.emit('message', 'PLAYe=[' + sheet + ']');
-  socket.emit('message', 'PLAY=[' + sheet + ']'+'/'+ speed_val +'/');
-})
-
-$('#stop').click(function () {
-  socket.emit('message', 'STOP');
-})
-
-$('#clear').click(function () {
-  $("input:radio").removeAttr("checked");
-  socket.emit('message', 'clear');
-})
-
-socket.on('redirectWAIT_OK', function (destination) {
-  window.location.href = destination;
-});
+  result = 'PLAY=[' + sheet + ']'+'/'+ speed_val +'/';
+  return result;
+}

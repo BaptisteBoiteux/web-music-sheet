@@ -7,7 +7,7 @@ let {
 
 socketApi.io = io;
 var usernb = 0;
-
+var playing=0;
 
 io.sockets.on('connection', function (socket, pseudo) {
 
@@ -31,42 +31,48 @@ io.sockets.on('connection', function (socket, pseudo) {
         console.log('user number =' + usernb);
     });
 
-
+    
     socket.on('message', function (message) {
         var today = new Date();
         var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-        console.log(time + ' : ' + message);
-
+        var directive =message;
+        
         // PYTHON SCRIPT CALL
-        var pyshell = new PythonShell('script.py');
-
-        pyshell.send(message);
-
-        pyshell.on('message', function (message) {
-            // received a message sent from the Python script (a simple "print" statement)
-            console.log(message);
-        });
-
-        // end the input stream and allow the process to exit
-        pyshell.end(function (err) {
-            if (err) {
-                throw err;
-            };
-
-            console.log('finished\n');
-        });
-        //END PYTHON SCRIPT CALL
+        if(directive.includes("PLAY")){
+            if(playing==1){
+                console.log("déjà en train de jouer!, playing =1")
+            }
+            else{
+            console.log(time + ' : ' + message);
+            var pyshell = new PythonShell('script.py');
+            pyshell.send(directive);
+            playing=1;
+            pyshell.on('message', function (message) {
+                // received a message sent from the Python script (a simple "print" statement)
+                console.log(message);
+            });
+            // end the input stream and allow the process to exit
+            pyshell.end(function (err) {
+                if (err) {
+                    throw err;
+                };
+                console.log('finished\n');
+                socket.emit('finished', 'finished playing' + directive);
+                playing=0;
+            });
+            //END PYTHON SCRIPT CALL
+            }
+        }
     });
+    
 
+    
     socket.on('redirectWAIT_plz', function (message) {
         console.log(time + ' me parle ! Il me dit : ' + message);
-
         var destination = 'localhost:8080';
         socket.emit('redirectWAIT_OK', destination);
         console.log("redirection /wait");
     });
-
-
 });
 
 //END

@@ -1,6 +1,7 @@
 import sys
 import time
-
+import digitalio
+from board import *
 
 # Read data from stdin
 def read_in():
@@ -10,12 +11,18 @@ def read_in():
 
 
 def main():
+    
     # get our data as an array from read_in()
     lines = read_in()
     lines = str(lines)
+    
     if "PLAY" in lines:
-        print("PLAYING THIS :")
+        DIR = digitalio.DigitalInOut(D6)
+        DIR.direction = digitalio.Direction.OUTPUT
 
+        STEP = digitalio.DigitalInOut(D19)
+        STEP.direction = digitalio.Direction.OUTPUT
+        print("PLAYING THIS :")
         sheet = lines
         # PARSING DATA
         merde, sheet, merde2 = sheet.split("'")
@@ -36,14 +43,28 @@ def main():
         print("note 7=", note7)
         print("note 8=", note8)
         print("SPEED=",speed)
-
+        #MOTOR STEPS
+        for x in range(6):
+            DIR.value = True
+            STEP.value = True
+            time.sleep(0.2)
+            STEP.value = False
+            time.sleep(0.2)
+            print("a gauche", x)
+        
+        for x in range(6):
+            DIR.value = False
+            STEP.value = True
+            time.sleep(0.2)
+            STEP.value = False
+            time.sleep(0.2)
+            print("a droite", x)
+            sys.stdout.flush()
+        #END MOTOR STEPS
     if "STOP" in lines:
         print("JAI COMPRIS JE MARRETE :")
         print(lines)
-
     # return the sum to the output stream
-
-
 # Start process
 if __name__ == '__main__':
     main()
